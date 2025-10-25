@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Smart Campus</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/notifications.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <nav class="navbar navbar-dashboard">
         <div class="container">
             <div class="nav-brand">
-                <img src="/images/logo.svg" alt="KLH University" class="site-logo">
+                <picture>
+                    <source srcset="/images/klh-official.png" type="image/png">
+                    <img src="/images/klh-logo.svg" alt="KLH University" class="site-logo">
+                </picture>
                 <span>Smart Campus</span>
             </div>
             <ul class="nav-menu">
@@ -106,9 +110,14 @@
                     <p>Hello! I'm your Smart Campus AI Assistant. How can I help you today?</p>
                 </div>
             </div>
+            <!-- Quick suggestion chips -->
+            <div class="chat-suggestions" id="chatSuggestions" style="display:flex; flex-wrap:wrap; gap:6px; padding:8px 12px; border-top:1px solid var(--border-color);">
+                <!-- Buttons injected by chatbot.js -->
+            </div>
             <div class="chat-input">
-                <input type="text" id="chatInput" placeholder="Type your message...">
-                <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                <input type="text" id="chatInput" placeholder="Type your message..." title="Enter to send • Shift+Enter for newline">
+                <button class="btn btn-ghost" onclick="clearChatHistory()" title="Clear chat" style="margin-right:6px;"><i class="fas fa-trash"></i></button>
+                <button onclick="sendMessage()" title="Send"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>

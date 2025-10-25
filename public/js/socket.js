@@ -90,25 +90,22 @@ socket.on('new-club', (club) => {
 
 // Notification function
 function showNotification(title, message) {
-    // Check if browser supports notifications
-    if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(title, {
-            body: message,
-            icon: '/images/logo.svg'
-        });
+    if (typeof window.showToast === 'function') {
+        // Prefer centralized toast utility if available
+        window.showToast(title, message, 'info');
+        return;
     }
-
-    // Also show in-app notification
+    // Fallback behavior
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body: message, icon: '/images/klh-logo.svg' });
+    }
     const notification = document.createElement('div');
     notification.className = 'notification-toast';
     notification.innerHTML = `
         <strong>${title}</strong>
         <p>${message}</p>
     `;
-    
     document.body.appendChild(notification);
-    
-    // Auto-remove after 5 seconds
     setTimeout(() => {
         notification.classList.add('fade-out');
         setTimeout(() => notification.remove(), 300);

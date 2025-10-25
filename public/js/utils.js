@@ -47,6 +47,41 @@ function showMessage(elementId, message, type = 'info') {
     }
 }
 
+// Lightweight toast notifications (and optional browser notifications)
+function showToast(title, message = '', type = 'info') {
+    try {
+        // In-app toast
+        const toast = document.createElement('div');
+        toast.className = 'notification-toast';
+        // basic type color hint via border-left
+        const color = type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#60a5fa';
+        toast.style.borderLeft = `4px solid ${color}`;
+        toast.innerHTML = `
+            <strong>${title}</strong>
+            ${message ? `<p>${message}</p>` : ''}
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => toast.remove(), 350);
+        }, 4000);
+
+        // Browser notification (optional)
+        if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+                new Notification(title, { body: message, icon: '/images/klh-logo.svg' });
+            } else if (Notification.permission === 'default') {
+                Notification.requestPermission().then((perm) => {
+                    if (perm === 'granted') new Notification(title, { body: message, icon: '/images/klh-logo.svg' });
+                });
+            }
+        }
+    } catch (_) {
+        // fallback
+        alert(`${title}${message ? `\n${message}` : ''}`);
+    }
+}
+
 // Handle API errors gracefully
 async function handleAPICall(url, options = {}) {
     try {
@@ -245,3 +280,4 @@ window.formatTime = formatTime;
 window.scrollToTop = scrollToTop;
 window.isDemoMode = isDemoMode;
 window.toggleTheme = toggleTheme;
+window.showToast = showToast;
