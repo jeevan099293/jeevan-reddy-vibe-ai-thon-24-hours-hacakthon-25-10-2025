@@ -85,8 +85,9 @@ function displayItems(items) {
 async function deleteItem(itemId) {
     if (!confirm('Are you sure you want to permanently delete this item?')) return;
     try {
-        const res = await fetch('/api/lost-found/' + itemId, {
-            method: 'DELETE',
+        // Use POST-based delete endpoint by default to avoid environments that block DELETE
+        const res = await fetch('/api/lost-found/' + itemId + '/delete', {
+            method: 'POST',
             headers: getAuthHeaders()
         });
         let data;
