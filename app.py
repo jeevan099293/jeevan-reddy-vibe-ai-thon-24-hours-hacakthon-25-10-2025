@@ -31,6 +31,36 @@ UPLOAD_FOLDER = os.path.join('public', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
 
+# Access control: Only specific student roll numbers are allowed
+# Ranges provided by user:
+# - CSE: 2410030001 to 2410030530
+# - ECE: 2410040001 to 2410040530
+# - AI & DS: 2410080001 to 2410080100
+ALLOWED_ROLL_RANGES = [
+    (2410030001, 2410030530),
+    (2410040001, 2410040530),
+    (2410080001, 2410080100),
+]
+
+def is_student_id_allowed(student_id: str) -> bool:
+    """Return True only if the given student_id is within one of the allowed ranges.
+    Accepts numeric strings; ignores spaces and hyphens.
+    """
+    if not student_id:
+        return False
+    # Normalize: remove non-digits
+    digits = ''.join(ch for ch in str(student_id) if ch.isdigit())
+    if not digits:
+        return False
+    try:
+        val = int(digits)
+    except ValueError:
+        return False
+    for low, high in ALLOWED_ROLL_RANGES:
+        if low <= val <= high:
+            return True
+    return False
+
 # Initialize chatbot if available
 if CHATBOT_AVAILABLE:
     try:
@@ -233,6 +263,11 @@ def register():
                 if not invite_code or invite_code != required_code:
                     return jsonify({'message': 'Admin registration requires a valid invite code.'}), 403
 
+        # If registering as a student, enforce allowed roll ranges
+        if role == 'student':
+            if not student_id or not is_student_id_allowed(student_id):
+                return jsonify({'message': 'Access restricted: Only specified student roll numbers are allowed to register.'}), 403
+
         email = email.lower()
 
         # Check if user exists
@@ -293,6 +328,11 @@ def login():
             return jsonify({'message': 'Invalid credentials!'}), 401
         
         if bcrypt.checkpw(password.encode('utf-8'), user['password']):
+            # Additional gate: for student accounts, restrict by allowed roll ranges
+            if user.get('role') == 'student':
+                sid = user.get('student_id', '')
+                if not is_student_id_allowed(sid):
+                    return jsonify({'message': 'Access restricted to approved student roll numbers only.'}), 403
             token = jwt.encode({
                 'user_id': str(user['_id']),
                 'exp': datetime.utcnow() + timedelta(hours=24)

@@ -88,6 +88,22 @@ if (loginForm) {
     });
 }
 
+// Allowed roll ranges for client-side validation (mirrors backend)
+const ALLOWED_ROLL_RANGES = [
+    [2410030001, 2410030530], // CSE
+    [2410040001, 2410040530], // ECE
+    [2410080001, 2410080100], // AI & DS
+];
+
+function isStudentIdAllowedClient(val) {
+    if (!val) return false;
+    const digits = String(val).replace(/\D+/g, '');
+    if (!digits) return false;
+    const num = Number(digits);
+    if (!Number.isFinite(num)) return false;
+    return ALLOWED_ROLL_RANGES.some(([lo, hi]) => num >= lo && num <= hi);
+}
+
 // Register Form Handler
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
@@ -122,6 +138,15 @@ if (registerForm) {
             messageDiv.className = 'message error';
             messageDiv.textContent = 'Role must be student, faculty, or admin.';
             return;
+        }
+
+        // If registering as student, enforce allowed roll ranges on client too
+        if (role === 'student') {
+            if (!isStudentIdAllowedClient(student_id)) {
+                messageDiv.className = 'message error';
+                messageDiv.textContent = 'Access restricted: Only specified student roll numbers are allowed.';
+                return;
+            }
         }
         
         try {
