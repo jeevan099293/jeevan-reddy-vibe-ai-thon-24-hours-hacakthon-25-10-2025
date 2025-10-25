@@ -522,6 +522,62 @@ def delete_lost_found_item_post(current_user, item_id):
         traceback.print_exc()
         return jsonify({'message': str(e)}), 500
 
+
+# Allow any authenticated user to claim an item; record claimant and then delete the item
+@app.route('/api/lost-found/<item_id>/claim', methods=['POST'])
+@token_required
+def claim_and_delete_item(current_user, item_id):
+    try:
+        print('\n--- POST /api/lost-found/{}/claim requested ---'.format(item_id))
+        print('Request headers:', dict(request.headers))
+        try:
+            oid = ObjectId(item_id)
+        except Exception:
+            print('Invalid item_id format (claim):', item_id)
+            return jsonify({'message': 'Invalid item id format'}), 400
+
+        print('Current user (from token):', {k: v for k, v in current_user.items() if k != 'password'})
+        item = lost_found_collection.find_one({'_id': ObjectId(item_id)})
+        if not item:
+            print('Item not found in DB for id (claim):', item_id)
+            return jsonify({'message': 'Item not found!'}), 404
+
+        # Optional: record claimant details (could be stored in an audit collection)
+        claimant = {
+            'item_id': item_id,
+            'claimed_by': str(current_user.get('_id')),
+            'claimed_by_name': current_user.get('name'),
+            'claimed_at': datetime.utcnow()
+        }
+        try:
+            db['claims_audit'].insert_one(claimant)
+            print('Recorded claim audit for', item_id)
+        except Exception as e:
+            print('Warning: failed to write claim audit:', e)
+
+        # Remove uploaded image file if any
+        try:
+            img = item.get('image_url', '') or ''
+            if img.startswith('/uploads/'):
+                fname = img.split('/uploads/')[-1]
+                file_path = os.path.join('public', 'uploads', fname)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    print('Removed uploaded file (claim):', file_path)
+        except Exception as _e:
+            print('Warning: failed to remove uploaded file (claim):', _e)
+
+        res = lost_found_collection.delete_one({'_id': ObjectId(item_id)})
+        print('Mongo delete result (claim):', res.deleted_count)
+        if res.deleted_count == 1:
+            return jsonify({'message': 'Item claimed and deleted successfully!'}), 200
+        else:
+            return jsonify({'message': 'Failed to delete item after claim'}), 500
+    except Exception as e:
+        print('Exception in claim_and_delete_item:')
+        traceback.print_exc()
+        return jsonify({'message': str(e)}), 500
+
 # Events Routes
 @app.route('/api/events', methods=['GET'])
 @token_required

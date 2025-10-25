@@ -135,22 +135,28 @@ async function deleteItem(itemId) {
 async function markClaimedAndDelete(itemId) {
     if (!confirm('Mark this item as claimed and delete it from the list?')) return;
     try {
-        // Update status to 'claimed' (for audit) - best-effort
-        const resp = await fetch('/api/lost-found/' + itemId, {
-            method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ status: 'claimed' })
+        // Call the server claim endpoint which allows any authenticated user to claim and delete
+        const token = localStorage.getItem('token');
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const resp = await fetch('/api/lost-found/' + itemId + '/claim', {
+            method: 'POST',
+            headers
         });
-        if (!resp.ok) {
-            // log non-fatal issue but continue to attempt delete
-            console.warn('Mark claimed returned', resp.status);
-        }
 
-        // Then delete
-        await deleteItem(itemId);
+        const text = await resp.text();
+        let data;
+        try { data = JSON.parse(text); } catch(_) { data = { message: text }; }
+
+        if (resp.ok) {
+            alert(data.message || 'Item claimed and deleted');
+            loadItems();
+        } else {
+            alert(data.message || `Failed to claim/delete (status ${resp.status})`);
+        }
     } catch (err) {
         console.error(err);
-        alert('Error marking claimed and deleting');
+        alert('Error marking claimed and deleting: ' + (err.message || err));
     }
 }
 
