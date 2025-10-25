@@ -4,6 +4,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 from datetime import datetime, timedelta
 from functools import wraps
+import traceback
 import bcrypt
 import jwt
 import os
@@ -69,6 +70,8 @@ def token_required(f):
         token = request.headers.get('Authorization')
         
         if not token:
+            print('🔒 token_required: Authorization header missing')
+            print('Request headers:', dict(request.headers))
             return jsonify({'message': 'Token is missing!'}), 401
         
         try:
@@ -76,6 +79,9 @@ def token_required(f):
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
             current_user = users_collection.find_one({'_id': ObjectId(data['user_id'])})
         except:
+            print('🔒 token_required: Token decode failed')
+            print('Raw Authorization header:', request.headers.get('Authorization'))
+            traceback.print_exc()
             return jsonify({'message': 'Token is invalid!'}), 401
         
         return f(current_user, *args, **kwargs)
@@ -336,7 +342,31 @@ def get_lost_found_items(current_user):
 @token_required
 def create_lost_found_item(current_user):
     try:
-        data = request.json
+        # Support both JSON body and multipart/form-data with file upload
+        image_url = ''
+        if request.content_type and request.content_type.startswith('multipart/form-data'):
+            # form fields are in request.form, file in request.files
+            form = request.form
+            data = form
+            if 'image' in request.files:
+                file = request.files['image']
+                if file and file.filename:
+                    filename = secure_filename(file.filename)
+                    # validate extension
+                    name, ext = os.path.splitext(filename)
+                    ext = ext.lower()
+                    if ext not in ALLOWED_EXTENSIONS:
+                        return jsonify({'message': f'File type not allowed: {ext}'}), 400
+                    # avoid collisions
+                    timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+                    filename = f"{name}_{timestamp}{ext}"
+                    save_path = os.path.join(UPLOAD_FOLDER, filename)
+                    file.save(save_path)
+                    image_url = f"/uploads/{filename}"
+        else:
+            data = request.json or {}
+            image_url = data.get('image_url', '')
+
         item = {
             'user_id': current_user['_id'],
             'user_name': current_user['name'],
@@ -347,7 +377,7 @@ def create_lost_found_item(current_user):
             'location': data.get('location'),
             'date': data.get('date'),
             'contact': data.get('contact'),
-            'image_url': data.get('image_url', ''),
+            'image_url': image_url or '',
             'status': 'active',
             'created_at': datetime.utcnow()
         }
@@ -382,6 +412,114 @@ def update_lost_found_item(current_user, item_id):
         
         return jsonify({'message': 'Item updated successfully!'}), 200
     except Exception as e:
+        return jsonify({'message': str(e)}), 500
+
+
+@app.route('/api/lost-found/<item_id>', methods=['DELETE'])
+@token_required
+def delete_lost_found_item(current_user, item_id):
+    try:
+        print('\n--- DELETE /api/lost-found/{} requested ---'.format(item_id))
+        print('Request headers:', dict(request.headers))
+        try:
+            # Validate ObjectId format early
+            oid = ObjectId(item_id)
+        except Exception:
+            print('Invalid item_id format:', item_id)
+            return jsonify({'message': 'Invalid item id format'}), 400
+
+        print('Current user (from token):', {k: v for k, v in current_user.items() if k != 'password'})
+        item = lost_found_collection.find_one({'_id': ObjectId(item_id)})
+        if not item:
+            print('Item not found in DB for id:', item_id)
+            return jsonify({'message': 'Item not found!'}), 404
+        # Only the owner or admin/faculty can delete
+        # Normalize IDs to strings before comparing to avoid type mismatches
+        owner_id_str = str(item.get('user_id'))
+        current_user_id_str = str(current_user.get('_id'))
+        print('Item owner id:', owner_id_str)
+        print('Current user id:', current_user_id_str)
+
+        if current_user_id_str != owner_id_str and current_user.get('role') not in ['admin', 'faculty']:
+            print('Access denied for user', current_user_id_str, 'role', current_user.get('role'))
+            return jsonify({'message': 'Access denied!'}), 403
+
+        # If item had an uploaded image, remove it from disk
+        try:
+            img = item.get('image_url', '') or ''
+            if img.startswith('/uploads/'):
+                fname = img.split('/uploads/')[-1]
+                file_path = os.path.join('public', 'uploads', fname)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    print('Removed uploaded file:', file_path)
+        except Exception as _e:
+            print('Warning: failed to remove uploaded file:', _e)
+
+        res = lost_found_collection.delete_one({'_id': ObjectId(item_id)})
+        print('Mongo delete result:', res.deleted_count)
+
+        if res.deleted_count == 1:
+            return jsonify({'message': 'Item deleted successfully!'}), 200
+        else:
+            print('Delete reported 0 deleted')
+            return jsonify({'message': 'Failed to delete item (no documents removed)'}), 500
+    except Exception as e:
+        print('Exception in delete_lost_found_item:')
+        traceback.print_exc()
+        return jsonify({'message': str(e)}), 500
+
+
+# Fallback POST-based delete for environments that block DELETE verbs
+@app.route('/api/lost-found/<item_id>/delete', methods=['POST'])
+@token_required
+def delete_lost_found_item_post(current_user, item_id):
+    # Reuse the same logic as the DELETE handler for safety
+    try:
+        print('\n--- POST /api/lost-found/{}/delete requested ---'.format(item_id))
+        print('Request headers:', dict(request.headers))
+        try:
+            oid = ObjectId(item_id)
+        except Exception:
+            print('Invalid item_id format (POST delete):', item_id)
+            return jsonify({'message': 'Invalid item id format'}), 400
+
+        print('Current user (from token):', {k: v for k, v in current_user.items() if k != 'password'})
+        item = lost_found_collection.find_one({'_id': ObjectId(item_id)})
+        if not item:
+            print('Item not found in DB for id (POST delete):', item_id)
+            return jsonify({'message': 'Item not found!'}), 404
+
+        owner_id_str = str(item.get('user_id'))
+        current_user_id_str = str(current_user.get('_id'))
+        print('Item owner id:', owner_id_str)
+        print('Current user id:', current_user_id_str)
+
+        if current_user_id_str != owner_id_str and current_user.get('role') not in ['admin', 'faculty']:
+            print('Access denied for user (POST delete)', current_user_id_str, 'role', current_user.get('role'))
+            return jsonify({'message': 'Access denied!'}), 403
+
+        # If item had an uploaded image, remove it from disk
+        try:
+            img = item.get('image_url', '') or ''
+            if img.startswith('/uploads/'):
+                fname = img.split('/uploads/')[-1]
+                file_path = os.path.join('public', 'uploads', fname)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    print('Removed uploaded file (POST):', file_path)
+        except Exception as _e:
+            print('Warning: failed to remove uploaded file (POST):', _e)
+
+        res = lost_found_collection.delete_one({'_id': ObjectId(item_id)})
+        print('Mongo delete result (POST):', res.deleted_count)
+        if res.deleted_count == 1:
+            return jsonify({'message': 'Item deleted successfully!'}), 200
+        else:
+            return jsonify({'message': 'Failed to delete item (no documents removed)'}), 500
+    except Exception as e:
+        print('Exception in delete_lost_found_item_post:')
+        traceback.print_exc()
         return jsonify({'message': str(e)}), 500
 
 # Events Routes

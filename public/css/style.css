@@ -16,6 +16,18 @@ html,body{ height:100%; }
   --white: #f3f8ff;
   --radius: 14px;
   --shadow-lg: 0 10px 30px rgba(2,8,23,0.6);
+    /* Compatibility aliases for components that use older variable names */
+    --text-primary: var(--white);
+    --text-secondary: var(--muted);
+    --border-color: rgba(255,255,255,0.06);
+    --primary-color: var(--accent);
+    --secondary-color: var(--accent-2);
+    --primary-dark: #4f5bd6;
+    --card-bg: rgba(255,255,255,0.02);
+    --shadow: 0 6px 20px rgba(2,6,23,0.4);
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --light-bg: rgba(255,255,255,0.03);
 }
 
 body{
