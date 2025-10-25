@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resources - Smart Campus</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+  <nav class="navbar navbar-dashboard">
+    <div class="container">
+      <div class="nav-brand">
+  <img src="/images/logo.svg" alt="KLH University" class="site-logo">
+        <span>Smart Campus</span>
+      </div>
+      <ul class="nav-menu">
+        <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+  <li><a href="/resources" class="active"><i class="fas fa-folder-open"></i> Resources</a></li>
+  <li><a href="/polls"><i class="fas fa-poll"></i> Polls</a></li>
+      </ul>
+      <div class="user-menu">
+        <span id="userName">User</span>
+        <button onclick="logout()" class="btn btn-small"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-container">
+    <div class="page-header">
+      <h1><i class="fas fa-folder-open"></i> Resource Sharing</h1>
+      <p style="color: var(--text-secondary);">Upload notes, slides, or share links with your campus.</p>
+    </div>
+
+    <section class="card">
+      <form id="resourceForm" class="modal-form" style="margin-bottom: 12px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" name="title" required />
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category">
+              <option value="general">General</option>
+              <option value="notes">Notes</option>
+              <option value="slides">Slides</option>
+              <option value="assignments">Assignments</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" rows="2" placeholder="(optional)"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Upload File</label>
+            <input type="file" id="res_file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,image/*" />
+          </div>
+          <div class="form-group">
+            <label>or Share Link</label>
+            <input type="url" name="link_url" placeholder="https://... (optional)" />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Share Resource</button>
+      </form>
+      <div id="resourcesList" class="list"></div>
+    </section>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/resources.js"></script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clubs - Smart Campus</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-dashboard">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="/images/logo.svg" alt="KLH University" class="site-logo">
+                <span>Smart Campus</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="/lost-found"><i class="fas fa-search"></i> Lost & Found</a></li>
+                <li><a href="/events"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a href="/feedback"><i class="fas fa-comments"></i> Feedback</a></li>
+                <li><a href="/clubs" class="active"><i class="fas fa-users"></i> Clubs</a></li>
+            </ul>
+            <div class="user-menu">
+                <span id="userName">User</span>
+                <button onclick="logout()" class="btn btn-small"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1><i class="fas fa-users"></i> Student Clubs</h1>
+            <button class="btn btn-primary" id="createClubBtn" onclick="openClubModal()" style="display:none;">
+                <i class="fas fa-plus"></i> Create Club
+            </button>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">All Clubs</button>
+                <button class="filter-btn" data-filter="technical">Technical</button>
+                <button class="filter-btn" data-filter="cultural">Cultural</button>
+                <button class="filter-btn" data-filter="sports">Sports</button>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search clubs...">
+            </div>
+        </div>
+
+        <div class="clubs-grid" id="clubsContainer">
+            <div class="loading">Loading clubs...</div>
+        </div>
+    </div>
+
+    <!-- Create Club Modal -->
+    <div class="modal" id="clubModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Club</h2>
+                <button class="close-btn" onclick="closeClubModal()">&times;</button>
+            </div>
+            <form id="clubForm" class="modal-form">
+                <div class="form-group">
+                    <label for="name">Club Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="technical">Technical</option>
+                        <option value="cultural">Cultural</option>
+                        <option value="sports">Sports</option>
+                        <option value="social">Social</option>
+                        <option value="academic">Academic</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="president">President Name</label>
+                    <input type="text" id="president" name="president" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="contact_email">Contact Email</label>
+                    <input type="email" id="contact_email" name="contact_email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="image_url">Club Logo URL (Optional)</label>
+                    <input type="url" id="image_url" name="image_url" placeholder="https://example.com/logo.jpg">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Create Club</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/utils.js"></script>
+    <script src="/js/clubs.js"></script>
+    <!-- Removed Socket.IO and duplicate script includes -->
+</body>
+</html>
+

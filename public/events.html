@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - Smart Campus</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-dashboard">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="/images/logo.svg" alt="KLH University" class="site-logo">
+                <span>Smart Campus</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="/lost-found"><i class="fas fa-search"></i> Lost & Found</a></li>
+                <li><a href="/events" class="active"><i class="fas fa-calendar-alt"></i> Events</a></li>
+                <li><a href="/feedback"><i class="fas fa-comments"></i> Feedback</a></li>
+                <li><a href="/clubs"><i class="fas fa-users"></i> Clubs</a></li>
+            </ul>
+            <div class="user-menu">
+                <span id="userName">User</span>
+                <button onclick="logout()" class="btn btn-small"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="page-header">
+            <h1><i class="fas fa-calendar-alt"></i> Campus Events</h1>
+            <button class="btn btn-primary" id="createEventBtn" onclick="openEventModal()" style="display:none;">
+                <i class="fas fa-plus"></i> Create Event
+            </button>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">All Events</button>
+                <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+                <button class="filter-btn" data-filter="today">Today</button>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search events...">
+            </div>
+        </div>
+
+        <div class="events-grid" id="eventsContainer">
+            <div class="loading">Loading events...</div>
+        </div>
+    </div>
+
+    <!-- Create Event Modal -->
+    <div class="modal" id="eventModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Event</h2>
+                <button class="close-btn" onclick="closeEventModal()">&times;</button>
+            </div>
+            <form id="eventForm" class="modal-form">
+                <div class="form-group">
+                    <label for="title">Event Title</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="academic">Academic</option>
+                        <option value="cultural">Cultural</option>
+                        <option value="sports">Sports</option>
+                        <option value="technical">Technical</option>
+                        <option value="workshop">Workshop</option>
+                        <option value="seminar">Seminar</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="event_date">Date</label>
+                        <input type="date" id="event_date" name="event_date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="event_time">Time</label>
+                        <input type="time" id="event_time" name="event_time" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="max_participants">Max Participants (0 for unlimited)</label>
+                    <input type="number" id="max_participants" name="max_participants" value="0" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="image_url">Event Image</label>
+                    <input type="file" id="image_file" name="image_file" accept="image/*" style="margin-bottom:6px;">
+                    <input type="url" id="image_url" name="image_url" placeholder="or paste an image URL (optional)">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Create Event</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/utils.js"></script>
+    <script src="/js/socket.js"></script>
+    <script src="/js/events.js"></script>
+</body>
+</html>

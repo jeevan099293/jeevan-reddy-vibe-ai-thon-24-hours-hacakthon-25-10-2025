@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Not Found - Smart Campus</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .not-found {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 70vh;
+      text-align: center;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .not-found h1 { font-size: 56px; margin: 0; }
+    .not-found p { color: var(--text-secondary); }
+    .not-found .actions { margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-brand">
+  <img src="/images/logo.svg" alt="KLH University" class="site-logo">
+        <span>Smart Campus</span>
+      </div>
+      <ul class="nav-menu">
+        <li><a href="/">Home</a></li>
+        <li><a href="/login">Login</a></li>
+        <li><a href="/register">Register</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container not-found">
+    <h1>404</h1>
+    <p>We couldn't find that page. It may have moved or no longer exists.</p>
+    <div class="actions">
+      <a class="btn" href="/"><i class="fas fa-home"></i> Go Home</a>
+      <a class="btn btn-primary" href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+</body>
+</html>
